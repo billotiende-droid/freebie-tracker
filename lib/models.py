@@ -16,6 +16,8 @@ class Company(Base):
     name = Column(String())
     founding_year = Column(Integer())
 
+    freebies = relationship('Freebie', backref='company', cascade='all, delete-orphan')
+
     def __repr__(self):
         return f'<Company {self.name}>'
 
