@@ -16,6 +16,7 @@ class Company(Base):
     name = Column(String())
     founding_year = Column(Integer())
 
+    # one to many relationship, company has many freebies
     freebies = relationship('Freebie', backref='company', cascade='all, delete-orphan')
 
     def __repr__(self):
@@ -26,6 +27,9 @@ class Dev(Base):
 
     id = Column(Integer(), primary_key=True)
     name= Column(String())
+    
+    # one to many relationship, dev has many freebies
+    freebies = relationship('Freebie', backref='dev', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Dev {self.name}>'
