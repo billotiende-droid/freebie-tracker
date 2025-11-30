@@ -11,7 +11,7 @@ convention = {
 metadata = MetaData(naming_convention=convention)
 
 # Create Base class with metadata attached
-Base = declarative_base(metadata=metadata)
+Base = declarative_base(metadata=metadata) 
 
 class Company(Base):
     __tablename__ = 'companies'
@@ -38,9 +38,9 @@ class Company(Base):
     )
 
 
-
+    # String representation of the Company object
     def __repr__(self):
-        return f'<Company {self.name}>'
+        return f'<Company {self.name},Year:{self.founding_year},Devs:{self.devs},Freebies:{len(self.freebies)}>'
 
 class Dev(Base):
     __tablename__ = 'devs'
