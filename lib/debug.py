@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
 
 print("\n===ALL DATA FROM DATABASE===")   
- 
+
 print(session.query(Company).all())
 print(session.query(Dev).all())
 print(session.query(Freebie).all())
@@ -22,6 +22,8 @@ print(session.query(Freebie).all())
 print("n\=== TESTING RELATIONSHIPS & METHODS ===")
 
 # freebie.dev + freebie.company
+
+print("\n FREEBIE -> DEV/COMPANY")
 
 freebie = session.query(Freebie).first()
 
@@ -31,13 +33,38 @@ print("Company:", freebie.company)
 print("print_details():", freebie.print_details())
 
 # company.devs + companies.freebies
-print("\n COMPANY -> DEVS/FEEBIES")
+print("\n COMPANY -> DEVS/FREEBIES")
 
 company = session.query(Company).first()
 
 print("Company:", company)
 print("Developers:", company.devs)
 print("Freebies:", company.freebies)
+
+
+# oldest company
+print("\n OLDEST COMPANY")
+oldest = Company.oldest_company()
+print("Oldest Company:", oldest)
+
+# def.give_away(freebie, other_dev)
+print("\n GIVE AWAY FREEBIE")
+
+giver = session.query(Dev).filter_by(name='Azdak').first()
+receiver = session.query(Dev).filter_by(name='Vashnadze').first()
+
+freebie = session.query(Freebie).filter_by(item_name='MacBook Pro').first()
+
+print("Before giving:")
+print("giver.freebies:", giver.freebies)
+print("receiver.freebies:", receiver.freebies)
+
+giver.give_away(freebie, receiver)
+
+print("\nAfter giving:")
+print("giver.freebies:", giver.freebies)
+print("receiver.freebies:", receiver.freebies)
+
 
 
   
