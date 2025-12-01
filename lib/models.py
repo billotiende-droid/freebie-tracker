@@ -15,7 +15,7 @@ Base = declarative_base(metadata=metadata)
 
 # Create engine and session
 
-engine = create_engine('sqlite:///freebies.db', echo=True)
+engine = create_engine('sqlite:///freebies.db')
 Session = sessionmaker(bind=engine)
 session = Session()  # Global session, used in methods below
 
@@ -83,7 +83,6 @@ class Dev(Base):
     def give_away(self, freebie,other_dev):
         if freebie in self.freebies:
             freebie.dev = other_dev
-            session.add(freebie)
             session.commit()
             return True
         return False
