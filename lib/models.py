@@ -73,16 +73,6 @@ class Dev(Base):
         #return true if the dev has received a freebie with the given item_name
         return any(freebie.item_name == item_name for freebie in self.freebies) 
 
-    def give_away(self, freebie, other_dev):
-        #transfer freebie from self to other_dev
-        if freebie in self.freebies:
-            freebie.dev = other_dev
-            session.add(freebie)
-            session.commit()
-            return True
-        return False 
-
-    
 
     def __repr__(self):
         return f'<Dev {self.name}>'
