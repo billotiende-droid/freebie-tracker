@@ -26,6 +26,7 @@ class Company(Base):
     # One-to-many relationship: a company has many freebies
     # backref="company" allows freebie.company to reference the parent
     # cascade ensures deletion of freebies when company is deleted
+    # single source of truth that is Freebie.
     freebies = relationship('Freebie', backref='company', cascade='all, delete-orphan')
     @property
     def devs(self):
@@ -60,23 +61,32 @@ class Dev(Base):
 
     # One-to-many relationship: a dev has many freebies
     # backref="dev" allows freebie.dev to access the related dev
+    #single source of truth that is Freebie.
     freebies = relationship('Freebie', backref='dev', cascade='all, delete-orphan')
+
+    @property 
+    def companies(self):
+        # return all unique companies that have given freebies to the dev
+        return list({freebie.company for freebie in self.freebies})  
+
+    def received_one(self, item_name):
+        #return true if the dev has received a freebie with the given item_name
+        return any(freebie.item_name == item_name for freebie in self.freebies) 
+
+    def give_away(self, freebie, other_dev):
+        #transfer freebie from self to other_dev
+        if freebie in self.freebies:
+            freebie.dev = other_dev
+            session.add(freebie)
+            session.commit()
+            return True
+        return False 
+
     
 
     def __repr__(self):
         return f'<Dev {self.name}>'
-    # 
-    def received_one(self, item_name):
-        return any(f.item_name == item_name for f in self.freebies)
     
-    def give_away(self, other_dev, freebie):
-       # Check if the freebie belongs to this dev
-        if freebie in self.freebies:
-            freebie.dev = other_dev
-            return True
-        return False
-
-
     
 class Freebie(Base):
     __tablename__ = 'freebies'
