@@ -1,5 +1,5 @@
-from sqlalchemy import ForeignKey, Column, Integer, String, MetaData
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy import create_engine,ForeignKey, Column, Integer, String, MetaData
+from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 # Naming convention for constraints (useful for Alembic migrations)
@@ -13,6 +13,14 @@ metadata = MetaData(naming_convention=convention)
 # Create Base class with metadata attached
 Base = declarative_base(metadata=metadata) 
 
+# Create engine and session
+
+engine = create_engine('sqlite:///freebies.db', echo=True)
+Session = sessionmaker(bind=engine)
+session = Session()  # Global session, used in methods below
+
+# MODELS
+
 class Company(Base):
     __tablename__ = 'companies'
 
@@ -20,8 +28,8 @@ class Company(Base):
     id = Column(Integer(), primary_key=True)
 
     # Basic attributes
-    name = Column(String())
-    founding_year = Column(Integer())
+    name = Column(String, nullable=False)
+    founding_year = Column(Integer)
 
     # One-to-many relationship: a company has many freebies
     # backref="company" allows freebie.company to reference the parent
@@ -39,17 +47,16 @@ class Company(Base):
         value=value, 
         dev=dev, 
         company=self)
-
         session.add(new_freebie)
         session.commit()    
-
         return new_freebie
+    
     @classmethod
-    def oldest_company(cls, session):
+    def oldest_company(cls):
         return session.query(cls).order_by(cls.founding_year).first()
 
     # String representation of the Company object
-    def __repsr__(self):
+    def __repr__(self):
         return f'<Company {self.name}>'
 
 class Dev(Base):
@@ -57,7 +64,7 @@ class Dev(Base):
 
     # Primary key
     id = Column(Integer(), primary_key=True)
-    name = Column(String())
+    name = Column(String, nullable=False)
 
     # One-to-many relationship: a dev has many freebies
     # backref="dev" allows freebie.dev to access the related dev
@@ -72,7 +79,15 @@ class Dev(Base):
     def received_one(self, item_name):
         #return true if the dev has received a freebie with the given item_name
         return any(freebie.item_name == item_name for freebie in self.freebies) 
-
+    
+    def give_away(self, freebie,other_dev):
+        if freebie in self.freebies:
+            freebie.dev = other_dev
+            session.add(freebie)
+            session.commit()
+            return True
+        return False
+        
 
     def __repr__(self):
         return f'<Dev {self.name}>'
@@ -92,6 +107,12 @@ class Freebie(Base):
     dev_id = Column(Integer(), ForeignKey('devs.id'), nullable=False)
     company_id = Column(Integer(), ForeignKey('companies.id'), nullable=False)
 
+    def print_details(self):
+        return f'{self.dev.name} received a {self.item_name} from {self.company.name}'
+
     def __repr__(self):
         # Note: Freebie does not have attribute "name" — you may want item_name instead
-        return f'<Freebie {self.name}>'
+        return f'<Freebie {self.item_name}>'
+
+
+Base.metadata.create_all(engine)
