@@ -27,20 +27,29 @@ class Company(Base):
     # backref="company" allows freebie.company to reference the parent
     # cascade ensures deletion of freebies when company is deleted
     freebies = relationship('Freebie', backref='company', cascade='all, delete-orphan')
-    # many-to-many relationship: a company has many devs through freebies
-    devs = relationship(
-        'Dev',
-        secondary='freebies',  #use freebies table as linking table
-        primaryjoin='Company.id == Freebie.company_id',
-        secondaryjoin='Dev.id == Freebie.dev_id',
-        backref='companies',
-        viewonly=True   # prevents SQLAlchemy from creating a separate table for this relationship
-    )
+    @property
+    def devs(self):
+        return list({freebie.dev for freebie in self.freebies})
+    
+    # create instances
+    def give_freebies(self, dev, item_name, value):
+        new_freebie = Freebie(
+        item_name=item_name, 
+        value=value, 
+        dev=dev, 
+        company=self)
 
+        session.add(new_freebie)
+        session.commit()    
+
+        return new_freebie
+    @classmethod
+    def oldest_company(cls, session):
+        return session.query(cls).order_by(cls.founding_year).first()
 
     # String representation of the Company object
-    def __repr__(self):
-        return f'<Company {self.name},Year:{self.founding_year},Devs:{self.devs},Freebies:{len(self.freebies)}>'
+    def __repsr__(self):
+        return f'<Company {self.name}>'
 
 class Dev(Base):
     __tablename__ = 'devs'
@@ -52,9 +61,22 @@ class Dev(Base):
     # One-to-many relationship: a dev has many freebies
     # backref="dev" allows freebie.dev to access the related dev
     freebies = relationship('Freebie', backref='dev', cascade='all, delete-orphan')
+    
 
     def __repr__(self):
         return f'<Dev {self.name}>'
+    # 
+    def received_one(self, item_name):
+        return any(f.item_name == item_name for f in self.freebies)
+    
+    def give_away(self, other_dev, freebie):
+       # Check if the freebie belongs to this dev
+        if freebie in self.freebies:
+            freebie.dev = other_dev
+            return True
+        return False
+
+
     
 class Freebie(Base):
     __tablename__ = 'freebies'
